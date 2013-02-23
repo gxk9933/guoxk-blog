@@ -1,0 +1,129 @@
+<?php 
+/**
+ * Implements hook_search_info().
+ */
+function custom_search_search_info() {
+    return array(
+        'title' => '自定义搜索',
+        'path' => 'custom',
+    );
+}
+
+/**
+ * Implements hook_search_status().
+ * 返回搜索的数量状态
+ */
+function custom_search_search_status() {
+    $total = db_query('SELECT COUNT(*) FROM {node}')->fetchField();
+    $remaining = db_query("SELECT COUNT(*) FROM {node} n LEFT JOIN {search_dataset} d ON d.type = 'node' AND d.sid = n.nid WHERE d.sid IS NULL OR d.reindex <> 0")->fetchField();
+    return array('remaining' => $remaining, 'total' => $total);
+}
+
+/**
+ * Implements hook_search_execute().
+ * 自定义搜索方法
+ */
+function custom_search_search_execute($keys = NULL, $conditions = NULL) {
+    $keys_arr = array_unique(array_filter(explode(' ', $keys)));
+    $keys_arr_count = count($keys_arr);
+    //如果关键字小于3个，则使用数据库的LIKE方法进行搜索匹配
+    if($keys_arr_count < 3){
+        // Build matching conditions
+        $query = db_select('field_data_body', 'b')
+        ->fields('b', array('entity_id'));
+        foreach($keys_arr as $k){
+            $query
+            ->condition('b.body_value', "%$k%", ' LIKE ');
+        }
+        $query->orderBy('b.entity_id', 'DESC');
+        
+        // Load results.
+        $find = $query
+        ->execute();
+        $results = array();
+        foreach ($find as $item) {
+            // Render the node.
+            $node = node_load($item->entity_id);
+            $build = node_view($node, 'search_result');
+            unset($build['#theme']);
+            $node->rendered = drupal_render($build);
+        
+            // Fetch comments for snippet.
+            $node->rendered .= ' ' . module_invoke('comment', 'node_update_index', $node);
+        
+            $extra = module_invoke_all('node_search_result', $node);
+        
+            $uri = entity_uri('node', $node);
+            $results[] = array(
+                    'link' => url($uri['path'], array_merge($uri['options'], array('absolute' => TRUE))),
+                    'type' => check_plain(node_type_get_name($node)),
+                    'title' => $node->title,
+                    'user' => theme('username', array('account' => $node)),
+                    'date' => $node->changed,
+                    'node' => $node,
+                    'extra' => $extra,
+                    'score' => 0,
+                    'snippet' => search_excerpt($keys, $node->rendered),
+                    'language' => entity_language('node', $node),
+            );
+        }
+        return $results;
+    }
+    
+    
+    
+    // Build matching conditions
+    $query = db_select('search_index', 'i', array('target' => 'slave'))->extend('SearchQuery')->extend('PagerDefault');
+    $query->join('node', 'n', 'n.nid = i.sid');
+    $query
+    ->condition('n.status', 1)
+    ->addTag('node_access')
+    ->searchExpression($keys, 'node');
+
+    // Insert special keywords.
+    $query->setOption('type', 'n.type');
+    $query->setOption('language', 'n.language');
+    if ($query->setOption('term', 'ti.tid')) {
+        $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+    }
+    // Only continue if the first pass query matches.
+    if (!$query->executeFirstPass()) {
+        return array();
+    }
+
+    // Add the ranking expressions.
+    _node_rankings($query);
+
+    // Load results.
+    $find = $query
+    ->limit(10)
+    ->execute();
+    $results = array();
+    foreach ($find as $item) {
+        // Render the node.
+        $node = node_load($item->sid);
+        $build = node_view($node, 'search_result');
+        unset($build['#theme']);
+        $node->rendered = drupal_render($build);
+
+        // Fetch comments for snippet.
+        $node->rendered .= ' ' . module_invoke('comment', 'node_update_index', $node);
+
+        $extra = module_invoke_all('node_search_result', $node);
+
+        $uri = entity_uri('node', $node);
+        $results[] = array(
+                'link' => url($uri['path'], array_merge($uri['options'], array('absolute' => TRUE))),
+                'type' => check_plain(node_type_get_name($node)),
+                'title' => $node->title,
+                'user' => theme('username', array('account' => $node)),
+                'date' => $node->changed,
+                'node' => $node,
+                'extra' => $extra,
+                'score' => $item->calculated_score,
+                'snippet' => search_excerpt($keys, $node->rendered),
+                'language' => entity_language('node', $node),
+        );
+    }
+    return $results;
+}

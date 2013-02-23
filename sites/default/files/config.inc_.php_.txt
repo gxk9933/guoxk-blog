@@ -1,0 +1,15 @@
+<?php
+define('UC_CONNECT', 'mysql');            //数据库类型
+define('UC_DBHOST', 'localhost');         //主机名称或者IP
+define('UC_DBUSER', 'root');              //数据库用户名
+define('UC_DBPW', 'a123');                //数据库密码
+define('UC_DBNAME', 'forum');             //数据库名称
+define('UC_DBCHARSET', 'utf-8');           //数据库字符编码
+define('UC_DBTABLEPRE', '`forum`.cdb_uc_');//UCenter的表前缀
+define('UC_DBCONNECT', '0');                //不知道
+define('UC_KEY', 'Kai6deNfU2jbA0E7p387Wdj1laf7Qai3DdAaU4UbQei890m760t2T0sck6x7v5t5');   //通信密钥
+define('UC_API', 'http://forum.sharkuo.com/uc_server');       //UCenter的地址
+define('UC_CHARSET', 'utf-8');            //UCenter字符编码
+define('UC_IP', '127.0.0.1');               //应用IP
+define('UC_APPID', '2');                     //应用ID
+define('UC_PPP', '20');                       //不知道

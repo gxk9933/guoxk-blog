@@ -1,0 +1,511 @@
+<?php 
+/**
+ * Implements hook_init().
+ */
+function wp_side_init() {
+  drupal_add_css(drupal_get_path('module', 'wp_side') . '/wp_side.css');
+}
+
+/**
+ * Implements hook_menu().
+ */
+function wp_side_menu() {
+    $items['admin/install_node_type_link'] = array(
+            'title' => '安装link',
+            'page callback' => 'install_node_type_link',
+            'access arguments' => array('access content'),
+    );
+    return $items;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function wp_side_block_info() {
+	$blocks = array();
+	/**
+	 * 标签云
+	 * 近期文章
+	 * 近期评论
+	 * 分类目录
+	 * 
+	 * 链接
+	 * 日历
+	 */
+	$blocks['tags']['info'] = t('Tags Cloud');
+	$blocks['tags']['cache'] = DRUPAL_CACHE_GLOBAL;
+	
+	$blocks['recent_blogs']['info'] = t('Recent Blogs');
+	$blocks['recent_blogs']['cache'] = DRUPAL_CACHE_GLOBAL;
+	
+	$blocks['recent_comments']['info'] = t('Recent Comments');
+	$blocks['recent_comments']['cache'] = DRUPAL_NO_CACHE;
+	
+	$blocks['category']['info'] = t('Blog Category');
+	$blocks['category']['cache'] = DRUPAL_CACHE_GLOBAL;
+	
+	$blocks['links']['info'] = t('Links');
+	$blocks['links']['cache'] = DRUPAL_CACHE_GLOBAL;
+	return $blocks;
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function wp_side_block_configure($delta = '') {
+	$form = array();
+
+	switch($delta){
+		case 'tags':
+			$form['tags_machine_name'] = array(
+				'#type' => 'textfield',
+				'#title' => t('Tags machine name'),
+				'#default_value' => variable_get('wp_side_tags_machine_name', 'tags'),
+				'#maxlength' => 30,
+				'#description' => l(t('find tags machine name here'), 'admin/structure/taxonomy'),
+			);
+			$form['tags_max_level'] = array(
+				'#type' => 'textfield',
+				'#title' => t('Tags Max Level'),
+				'#default_value' => variable_get('wp_side_tags_max_level', '6'),
+				'#maxlength' => 3,
+				'#description' => t('The number of levels between the least popular
+		      tags and the most popular ones. Different levels will be assigned a different
+		      class to be themed in tagclouds.css'),
+			);
+			$form['tags_max_num'] = array(
+				'#type' => 'textfield',
+				'#title' => t('Tags Max Num'),
+				'#default_value' => variable_get('wp_side_tags_max_num', '60'),
+				'#maxlength' => 3,
+				'#description' => t("The amount of tags that will show up in a cloud on the
+		      pages. Enter '0' to display all tags. Amount of tags in blocks must be
+		      configured in the block settings of the various cloud blocks."),
+			);
+			return $form;
+		case 'recent_blogs':
+			$form['node_type'] = array(
+				'#type' => 'textfield',
+				'#title' => t('Node Type Machine Name'),
+				'#default_value' => variable_get('wp_side_recent_blog_node_type', 'article'),
+				'#maxlength' => 30,
+				'#description' => l(t('find node type here'), 'admin/structure/types'),
+			);
+			$form['recent_blogs_num'] = array(
+				'#type' => 'textfield',
+				'#title' => t('Recent Blogs Number'),
+				'#default_value' => variable_get('wp_side_recent_blogs_num', '10'),
+				'#maxlength' => 3,
+				'#description' => t('The number of recent blogs'),
+			);
+			return $form;
+		case 'recent_comments':
+			$form['recent_comments_num'] = array(
+					'#type' => 'select',
+					'#title' => t('Recent Comments Number'),
+					'#default_value' => variable_get('wp_side_recent_comments_num', '10'),
+					'#options' => drupal_map_assoc(array(2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25, 30)),
+					'#description' => t('The number of recent comments'),
+			);
+			return $form;
+		case 'category':
+			$form['category_machine_name'] = array(
+				'#type' => 'textfield',
+				'#title' => t('Category machine name'),
+				'#default_value' => variable_get('wp_side_category_machine_name', 'category'),
+				'#maxlength' => 30,
+				'#description' => l(t('find category machine name here'), 'admin/structure/taxonomy'),
+			);
+			return $form;
+		case 'links':
+		    $form['links_num'] = array(
+				'#type' => 'select',
+				'#title' => t('Links Number'),
+				'#default_value' => variable_get('wp_side_links_num', '10'),
+				'#options' => drupal_map_assoc(array(2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25, 30)),
+				'#description' => t('The number of links block'),
+			);
+			return $form;
+	}
+	
+}
+/**
+ * Implements hook_block_save().
+ */
+function wp_side_block_save($delta = '', $edit = array()) {
+	switch($delta){
+		case 'tags':
+			variable_set('wp_side_tags_machine_name', $edit['tags_machine_name']);
+			variable_set('wp_side_tags_max_level', $edit['tags_max_level']);
+			variable_set('wp_side_tags_max_num', $edit['tags_max_num']);
+			break;
+		case 'recent_blogs':
+			variable_set('wp_side_recent_blog_node_type', $edit['node_type']);
+			variable_set('wp_side_recent_blogs_num', $edit['recent_blogs_num']);
+			break;
+		case 'recent_comments':
+			variable_set('wp_side_recent_comments_num', $edit['recent_comments_num']);
+			break;
+		case 'category':
+				variable_set('wp_side_category_machine_name', $edit['category_machine_name']);
+				break;
+		case 'links':
+		    variable_set('wp_side_links_num', $edit['links_num']);
+		    break;
+	}
+	
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function wp_side_block_view($delta = '') {
+	$block = array();
+	
+	if($delta == 'tags'){
+		$block['subject'] = t('Tags Cloud');
+		$tags = wp_side_get_tags();
+		$output = '';
+		foreach($tags as $term){
+			$uri = array();
+			$uri['options']['attributes']['class'][] = 'wp_side_tags_cloud';
+	    $uri['options']['attributes']['class'][] = 'level' . $term->weight;
+	    $uri['options']['attributes']['rel'] = 'tag';
+	    $uri['options']['attributes']['title'] = $term->description? $term->description: $term->name;
+	    $row = l($term->name, 'taxonomy/term/'.$term->tid, $uri['options']) . " \n";
+			$output .= "<span class='tagclouds-term'>{$row}</span>\n";
+		}
+		$block['content'] = $output;
+	}elseif($delta == 'recent_blogs'){
+        $block['subject'] = t('Recent Blogs');
+        $nodes = wp_side_get_recent_blogs();
+        if ($nodes) {
+        	$items = array();
+	        foreach ($nodes as $node) {
+						$items[] = l($node->title, 'node/' . $node->nid);
+					}
+	        $block['content'] = theme('item_list', array('items' => $items));
+        } else {
+        	$block['content'] = t('No blog available.');
+        }
+	}elseif($delta == 'recent_comments'){
+        $block['subject'] = t('Recent Comments');
+        $comments = wp_side_get_recent_comments();
+        if ($comments) {
+        	$items = array();
+	        foreach ($comments as $c) {
+						$items[] = $c->name."&nbsp;&nbsp;". t('Commented on').'《'. l($c->title, 'node/'. $c->nid, array('fragment' => 'comment-' . $c->cid)).'》';
+					}
+	        $block['content'] = theme('item_list', array('items' => $items));
+        } else {
+        	$block['content'] = t('No blog available.');
+        }
+	}elseif($delta == 'category'){
+		$block['subject'] = t('Category');
+		$category = wp_side_get_category();
+		$output = '';
+		foreach($category as $term){
+			$uri = array();
+	    $uri['options']['attributes']['title'] = $term->description? $term->description: $term->name;
+	    $items[] = l($term->name, 'taxonomy/term/'.$term->tid, $uri['options']) . " \n";
+		}
+		$block['content'] = theme('item_list', array('items' => $items));
+	}elseif($delta == 'links'){
+        $block['subject'] = t('Links');
+        $nodes = wp_side_get_links();
+        if ($nodes) {
+        	$items = array();
+	        foreach ($nodes as $node) {
+						$items[] = l($node->title, $node->field_link['und'][0]['value']);
+					}
+	        $block['content'] = theme('item_list', array('items' => $items));
+        } else {
+        	$block['content'] = t('No Links');
+        }
+	}
+	
+	
+	return $block;
+}
+
+/**
+ * Implements hook_help()
+ */
+function wp_side_help($path, $arg){
+	switch ($path) {
+		case 'admin/help#wp_side':
+			$output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Provide Some Side Block Like Wordpress'). '</p>';
+      return $output;
+	}
+}
+
+
+/**
+ * Implements hook_node_info().
+ * 新建自己的内容类型
+ */
+function wp_side_node_info() {
+  return array(
+    'link' => array(
+      'name' => t('Link'),
+      'base' => 'link',
+      'description' => t('My Favorite Links'),
+    )
+  );
+}
+/**
+ * Implements hook_form().
+ * 内容编辑表单，未实现hook_form()，则不会出现在：结构->内容类型
+ * 注意，这里是{$type}_form，而不是{$moduleName}_form
+ */
+function link_form($node, $form_state) {
+	return node_content_form($node, $form_state);
+}
+
+
+
+
+
+
+
+
+
+
+/********************上面为hook********************************
+ * 
+ ********************下面为function***************************/
+//获取最新博客
+function wp_side_get_links(){
+    $cache_name = 'wp_side_block_links_cache';
+    $cache = cache_get($cache_name, 'cache_page');
+    if (isset($cache->data)) {
+        $nodes = $cache->data;
+    }else {
+        $number = variable_get('wp_side_links_num', '10');
+        $query = db_select('node', 'n');
+        $query->condition('n.status', NODE_PUBLISHED);
+        $query->condition('n.type', 'link');
+        $nids = $query
+        ->fields('n', array('nid'))
+        ->orderBy('n.nid', 'DESC')
+        ->range(0, $number)
+        ->execute()
+        ->fetchCol();
+        $nodes = node_load_multiple($nids);
+        cache_set($cache_name, $nodes, 'cache_page', CACHE_TEMPORARY);
+    }
+    return $nodes ? $nodes : array();
+}
+//获取文章分类
+function wp_side_get_category(){
+	$category = array();
+	// Check if the cache exists.
+	$cache_name = 'wp_side_block_category_cache';
+	$cache = cache_get($cache_name, 'cache_page');
+	
+	// Make sure cache has data.
+	if (isset($cache->data)) {
+		$category = $cache->data;
+	}else {
+		$tags_machine_name = variable_get('wp_side_category_machine_name', 'category');
+		$taxonomy = taxonomy_vocabulary_machine_name_load($tags_machine_name);
+	
+		if(empty($taxonomy)){
+			return $category;
+		}
+		
+		$category = taxonomy_get_tree($taxonomy->vid);
+		cache_set($cache_name, $category, 'cache_page', CACHE_TEMPORARY);
+	}
+	
+	return $category;
+}
+//获取最新评论
+function wp_side_get_recent_comments(){
+	$number = variable_get('wp_side_recent_comments_num', '10');
+	$query = db_select('comment', 'c');
+	$query->innerJoin('node', 'n', 'n.nid = c.nid');
+	$comments = $query
+		->fields('c', array('cid', 'name'))
+		->fields('n', array('nid', 'title'))
+		->condition('c.status', COMMENT_PUBLISHED)
+		->condition('n.status', NODE_PUBLISHED)
+		->orderBy('c.created', 'DESC')
+		// Additionally order by cid to ensure that comments with the same timestamp
+		// are returned in the exact order posted.
+		->orderBy('c.cid', 'DESC')
+		->range(0, $number)
+		->execute()
+		->fetchAll();
+	
+	return $comments ? $comments : array();
+}
+//获取最新博客
+function wp_side_get_recent_blogs(){
+	$cache_name = 'wp_side_block_recent_blogs_cache';
+	$cache = cache_get($cache_name, 'cache_page');
+	if (isset($cache->data)) {
+		$nodes = $cache->data;
+	}else {
+		$number = variable_get('wp_side_recent_blogs_num', '10');
+		$node_type = variable_get('wp_side_recent_blog_node_type', 'article');
+		$query = db_select('node', 'n');
+		$query->condition('n.status', NODE_PUBLISHED);
+		$query->condition('n.type', $node_type);
+		$nids = $query
+		    ->fields('n', array('nid'))
+		    ->orderBy('n.changed', 'DESC')
+		    ->range(0, $number)
+		    ->execute()
+		    ->fetchCol();
+		$nodes = node_load_multiple($nids);
+		cache_set($cache_name, $nodes, 'cache_page', CACHE_TEMPORARY);
+	}
+	return $nodes ? $nodes : array();
+}
+/**
+ * Function that gets the information from the database, passes it along to the
+ * weight builder and returns these weighted tags. Note that the tags are
+ * unordered at this stage, hence they need ordering either by calling our api
+ * or by your own ordering data.
+ *
+ * @param $vids
+ *   Vocabulary ids representing the vocabularies where you want the tags from.
+ * @param $steps
+ *   The amount of tag-sizes you will be using. If you give "12" you still get
+ *   six different "weights". Defaults to 6 and is optional.
+ * @param $size
+ *   The number of tags that will be returned.
+ * @param $display OPTIONAL
+ *   The type of display "style"=weighted,"count"=numbered display
+ *
+ * @return
+ *   An <em>unordered</em> array with tags-objects, containing the attribute
+ *   $tag->weight.
+ */
+function wp_side_get_tags() {
+	$tags = array();
+	// Check if the cache exists.
+	$cache_name = 'wp_side_block_tags_cache';
+	$cache = cache_get($cache_name, 'cache_page');
+
+	// Make sure cache has data.
+	if (isset($cache->data)) {
+		$tags = $cache->data;
+	}else {
+		$steps = variable_get('wp_side_tags_max_level', 6);
+		$size = variable_get('wp_side_tags_max_num', 60);
+		
+		$tags_machine_name = variable_get('wp_side_tags_machine_name', 'tags');
+		$taxonomy = taxonomy_vocabulary_machine_name_load($tags_machine_name);
+		
+		if(empty($taxonomy)){
+			return $tags;
+		}
+		$query = db_select('taxonomy_term_data', 'td');
+		$query->addExpression('COUNT(*)', 'count');
+		$query->fields('td',array('tid', 'vid', 'name', 'description'));
+		$query->fields('tn',array('nid'));
+		$query->join('taxonomy_index', 'tn', 'td.tid = tn.tid');
+		$query->join('node', 'n', 'tn.nid = n.nid');
+		$query->condition('td.vid', $taxonomy->vid);
+		$query->condition('n.status', 1);
+		$query->groupBy('td.tid')->groupBy('td.vid')->groupBy('td.name');
+		$query->groupBy('td.description HAVING count > 0');
+		$query->orderBy('count', 'DESC');
+		if ($size > 0) $query->range(0, $size);
+		$result = $query->execute();
+
+		foreach ($result as $tag) {
+			$tags[$tag->tid] = $tag;
+		}
+		//计算权重
+		$tags = wp_side_build_weighted_tags($tags, $steps);
+		//随机排序
+		shuffle($tags);
+		cache_set($cache_name, $tags, 'cache_page', CACHE_TEMPORARY);
+	}
+	
+	return $tags;
+}
+/**
+ * API that returns an array with weighted tags.
+ *
+ * This is the hard part. People with better ideas are very very welcome to send
+ * these to ber@webschuur.com. Distribution is one thing that needs attention.
+ *
+ * @param $tags
+ *   A list of <em>objects</em> with the following attributes: $tag->count,
+ *   $tag->tid, $tag->name and $tag->vid. Each Tag will be calculated and
+ *   turned into a tag. Refer to tagclouds_get__tags() for an example.
+ * @param $steps
+ *   The amount of tag-sizes you will be using. If you give "12" you still get
+ *   six different "weights". Defaults to 6 and is optional.
+ * @return
+ *   An <em>unordered</em> array with tags-objects, containing the attribute
+ *   $tag->weight.
+ */
+function wp_side_build_weighted_tags($tags, $steps = 6) {
+  // Find minimum and maximum log-count. By our MatheMagician Steven Wittens aka
+  // UnConeD.
+  $tags_tmp = array();
+  $min = 1e9;
+  $max = -1e9;
+  foreach ($tags as $id => $tag) {
+    $tag->number_of_posts = $tag->count;
+    $tag->weightcount = log($tag->count);
+    $min = min($min, $tag->weightcount);
+    $max = max($max, $tag->weightcount);
+    $tags_tmp[$id] = $tag;
+  }
+  // Note: we need to ensure the range is slightly too large to make sure even
+  // the largest element is rounded down.
+  $range = max(.01, $max - $min) * 1.0001;
+  foreach ($tags_tmp as $key => $value) {
+    $tags[$key]->weight = 1 + floor($steps * ($value->weightcount - $min) / $range);
+  }
+  return $tags;
+}
+
+function install_node_type_link(){
+    // Create the 'taxonomy_forums' field if it doesn't already exist.
+    if (!field_info_field('field_link')) {
+        $field = array(
+                'field_name' => 'field_link',
+                'type' => 'text',
+        );
+        field_create_field($field);
+    
+    
+        // Create the instance on the bundle.
+        $instance = array(
+                'field_name' => 'field_link',
+                'entity_type' => 'node',
+                'label' => t('链接地址'),
+                'bundle' => 'link',//内容类型的机读名称
+                'required' => TRUE,
+                'widget' => array(
+                        'type' => 'text_textfield',
+                ),
+                'display' => array(
+                        'default' => array(
+                                'type' => 'field_link',
+                                'weight' => 10,
+                        ),
+                        'teaser' => array(
+                                'type' => 'field_link',
+                                'weight' => 10,
+                        ),
+                ),
+        );
+        field_create_instance($instance);
+    }
+    
+    // Ensure the forum node type is available.
+    node_types_rebuild();
+    $types = node_type_get_types();
+    node_add_body_field($types['link']);
+    echo 'install success';
+}

@@ -1,0 +1,37 @@
+/* tags cloud default example stylesheet **/
+
+.wrapper.wp_side_tags_cloud {
+  text-align : justify;
+  margin-right: 1em;
+}
+
+.wp_side_tags_cloud.level1 {
+  font-size : 1em;
+}
+.wp_side_tags_cloud.level2 {
+  font-size : 1.2em;
+}
+.wp_side_tags_cloud.level3 {
+  font-size : 1.4em;
+}
+.wp_side_tags_cloud.level4 {
+  font-size : 1.6em;
+}
+.wp_side_tags_cloud.level5 {
+  font-size : 1.8em;
+}
+.wp_side_tags_cloud.level6 {
+  font-size : 2em;
+}
+.wp_side_tags_cloud.level7 {
+  font-size : 2.2em;
+}
+.wp_side_tags_cloud.level8 {
+  font-size : 2.4em;
+}
+.wp_side_tags_cloud.level9 {
+  font-size : 2.6em;
+}
+.wp_side_tags_cloud.level10 {
+  font-size : 2.8em;
+}

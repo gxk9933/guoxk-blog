@@ -1,0 +1,153 @@
+用了一段时间的wordpress，发现自己对他的控制比较吃力，想做一些扩展功能，但又不太熟悉wordpress插件的制作，他人做的又不合我意，故还是决定将博客转移回drupal上去。
+drupal中有模块“WordPress Migrate”和“Wordpress Import”可以实现这个功能。分别适用于drupal7和drupal6，但是我使用WordPress Migrate模块导入数据id会重新排列
+所以还是决定自己写sql语句转移数据
+全新安装drupal7后，安装的时候设置php的最大执行时间为300
+将wordpress的数据表导入相同的库中
+truncate table guoxk_node;
+truncate table guoxk_node_revision;
+truncate table guoxk_field_data_body;
+truncate table guoxk_field_revision_body;
+truncate table guoxk_node_comment_statistics;
+truncate table guoxk_comment;
+truncate table guoxk_field_data_comment_body ;
+truncate table `guoxk_taxonomy_term_data`;
+truncate table `guoxk_taxonomy_term_data`;
+truncate table `guoxk_taxonomy_term_hierarchy`;
+truncate table `guoxk_field_data_field_category`;
+truncate table `guoxk_field_revision_field_category`;
+truncate table `guoxk_field_data_field_tags`;
+truncate table `guoxk_field_revision_field_tags`;
+truncate table guoxk_taxonomy_index;
+truncate table guoxk_url_alias ;
+1、转移博客内容
+INSERT INTO guoxk_node (nid, vid, `type`, `language`,`title`,`uid`, `status`, `created`, `changed`,`comment`, `promote`, `sticky`, `tnid`, `translate`)
+	SELECT ID, ID, 'article', 'zh-hans',`post_title`, `post_author`, '1', unix_timestamp(`post_date`),  unix_timestamp(`post_modified`), 
+	'2', '1', '0', '0', '0' FROM wp_posts WHERE post_type ='post' AND `post_status` <> 'auto-draft';
+INSERT INTO guoxk_node_revision (`nid`, `vid`, `uid`, `title`, `log`, `timestamp`, `status`, `comment`, `promote`, `sticky`)
+	SELECT ID, ID, `post_author`, `post_title`, '', unix_timestamp(`post_modified`), 1, 2, 1, 0  FROM wp_posts WHERE post_type ='post' AND `post_status` <> 'auto-draft';
+INSERT INTO guoxk_field_data_body (entity_type, `bundle`, `deleted`, `entity_id`, `revision_id`, `language`, `delta`, `body_value`, `body_summary`, `body_format`)
+	SELECT 'node', 'article', 0, ID, ID, 'und', 0, `post_content`, '', 'full_html' FROM wp_posts WHERE post_type ='post' AND `post_status` <> 'auto-draft';
+INSERT INTO guoxk_field_revision_body (entity_type, `bundle`, `deleted`, `entity_id`, `revision_id`, `language`, `delta`, `body_value`, `body_summary`, `body_format`)
+	SELECT 'node', 'article', 0, ID, ID, 'und', 0, `post_content`, '', 'full_html' FROM wp_posts WHERE post_type ='post' AND `post_status` <> 'auto-draft';
+INSERT INTO guoxk_node_comment_statistics (nid, cid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count)
+	SELECT ID, 0, 0, NULL, 0, comment_count FROM wp_posts WHERE post_type ='post' AND `post_status` <> 'auto-draft';
+
+2、转移页面内容
+INSERT INTO guoxk_node (nid, vid, `type`, `language`,`title`,`uid`, `status`, `created`, `changed`,`comment`, `promote`, `sticky`, `tnid`, `translate`)
+	SELECT ID, ID, 'page', 'zh-hans',`post_title`, `post_author`, '1', unix_timestamp(`post_date`),  unix_timestamp(`post_modified`), 
+	'2', '1', '0', '0', '0' FROM wp_posts WHERE post_type ='page' AND `post_status` <> 'auto-draft';
+INSERT INTO guoxk_node_revision (`nid`, `vid`, `uid`, `title`, `log`, `timestamp`, `status`, `comment`, `promote`, `sticky`)
+	SELECT ID, ID, `post_author`, `post_title`, '', unix_timestamp(`post_modified`), 1, 2, 1, 0  FROM wp_posts WHERE post_type ='page' AND `post_status` <> 'auto-draft';
+INSERT INTO guoxk_field_data_body (entity_type, `bundle`, `deleted`, `entity_id`, `revision_id`, `language`, `delta`, `body_value`, `body_summary`, `body_format`)
+	SELECT 'node', 'page', 0, ID, ID, 'und', 0, `post_content`, '', 'full_html' FROM wp_posts WHERE post_type ='page' AND `post_status` <> 'auto-draft';
+INSERT INTO guoxk_field_revision_body (entity_type, `bundle`, `deleted`, `entity_id`, `revision_id`, `language`, `delta`, `body_value`, `body_summary`, `body_format`)
+	SELECT 'node', 'page', 0, ID, ID, 'und', 0, `post_content`, '', 'full_html' FROM wp_posts WHERE post_type ='page' AND `post_status` <> 'auto-draft';
+INSERT INTO guoxk_node_comment_statistics (nid, cid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count)
+	SELECT ID, 0, 0, NULL, 0, comment_count FROM wp_posts WHERE post_type ='page' AND `post_status` <> 'auto-draft';
+
+
+3、转移评论
+
+INSERT INTO guoxk_comment (cid, pid, nid, uid, subject, hostname, created, changed, status, thread, name, mail, homepage, language)
+	SELECT comment_ID, comment_parent, comment_post_ID, user_id, 'title', comment_author_IP, 
+	unix_timestamp(comment_date), unix_timestamp(comment_date), 1, '', comment_author, comment_author_email, comment_author_url, 'und'
+	FROM wp_comments WHERE comment_ID NOT IN (SELECT comment_id FROM wp_commentmeta) AND comment_type <> 'pingback';
+
+INSERT INTO guoxk_field_data_comment_body (entity_type, bundle, deleted, entity_id, revision_id, language, delta, comment_body_value, comment_body_format)
+	SELECT 'comment', 'comment_node_article', '0', comment_ID, comment_ID, 'und', 0, `comment_content`, 'filtered_html' 
+	FROM wp_comments WHERE comment_ID NOT IN (SELECT comment_id FROM wp_commentmeta) AND comment_type <> 'pingback';
+update guoxk_comment set uid = 0 where uid <> 1
+4、建立分类
+从页面上建立文章分类
+并作为文章的一个cck字段
+5、导入分类
+
+INSERT INTO `guoxk_taxonomy_term_data` (`tid`, `vid`, `name`, `description`, `format`, `weight`) 
+	SELECT wtt.term_taxonomy_id, 2, wt.name, '', 'filtered_html', 0 FROM wp_terms wt INNER JOIN wp_term_taxonomy wtt ON wt.term_id = wtt.term_id
+	WHERE wtt.taxonomy = 'category';
+
+INSERT INTO `guoxk_taxonomy_term_data` (`tid`, `vid`, `name`, `description`, `format`, `weight`) 
+	SELECT wtt.term_taxonomy_id, 1, wt.name, '', 'filtered_html', 0 FROM wp_terms wt INNER JOIN wp_term_taxonomy wtt ON wt.term_id = wtt.term_id
+	WHERE wtt.taxonomy = 'post_tag';
+INSERT INTO `guoxk_taxonomy_term_hierarchy` (`tid`, `parent`)
+	SELECT `term_taxonomy_id`, `parent` FROM wp_term_taxonomy;
+6、文章与分类建立关系
+
+
+INSERT INTO `guoxk_field_data_field_category` (`entity_type`, `bundle`, `deleted`, `entity_id`, `revision_id`, `language`, `delta`, `field_category_tid`)
+	SELECT 'node', 'article', 0, r.object_id, r.object_id, 'und', r.term_taxonomy_id, r.term_taxonomy_id FROM wp_term_relationships r
+	INNER JOIN wp_term_taxonomy  t ON r.term_taxonomy_id = t.term_taxonomy_id where t.taxonomy = 'category';
+INSERT INTO `guoxk_field_revision_field_category` (`entity_type`, `bundle`, `deleted`, `entity_id`, `revision_id`, `language`, `delta`, `field_category_tid`)
+	SELECT 'node', 'article', 0, r.object_id, r.object_id, 'und', r.term_taxonomy_id, r.term_taxonomy_id FROM wp_term_relationships r
+	INNER JOIN wp_term_taxonomy  t ON r.term_taxonomy_id = t.term_taxonomy_id where t.taxonomy = 'category';
+
+INSERT INTO `guoxk_field_data_field_tags` (`entity_type`, `bundle`, `deleted`, `entity_id`, `revision_id`, `language`, `delta`, `field_tags_tid`)
+	SELECT 'node', 'article', 0, r.object_id, r.object_id, 'und', r.term_taxonomy_id, r.term_taxonomy_id FROM wp_term_relationships r
+	INNER JOIN wp_term_taxonomy  t ON r.term_taxonomy_id = t.term_taxonomy_id where t.taxonomy = 'post_tag';
+INSERT INTO `guoxk_field_revision_field_tags` (`entity_type`, `bundle`, `deleted`, `entity_id`, `revision_id`, `language`, `delta`, `field_tags_tid`)
+	SELECT 'node', 'article', 0, r.object_id, r.object_id, 'und', r.term_taxonomy_id, r.term_taxonomy_id FROM wp_term_relationships r
+	INNER JOIN wp_term_taxonomy  t ON r.term_taxonomy_id = t.term_taxonomy_id where t.taxonomy = 'post_tag';
+
+INSERT INTO guoxk_taxonomy_index (nid, tid, sticky, created)
+	SELECT object_id, term_taxonomy_id, 0, unix_timestamp() from wp_term_relationships;
+
+7、url别名的导入
+
+INSERT INTO guoxk_url_alias (`source`, `alias`, `language`)
+	SELECT concat('node/',ID), concat('node/', post_name), 'zh-hans' FROM wp_posts WHERE post_type ='post' AND `post_status` <> 'auto-draft';
+delete from `guoxk_url_alias` WHERE `alias` = 'node/';
+
+$mysqli = new mysqli('localhost', 'u115937', 't49gQDjx', 'u115937b');
+$mysqli->set_charset('utf8');
+
+
+$result = $mysqli->query("select * from wp_posts WHERE post_type ='post' AND `post_status` <> 'auto-draft'");
+while($row = $result->fetch_array()){
+	$url = 'node/'.urldecode($row['post_name']);
+	$source = 'node/'.$row['ID'];
+	$sql = "UPDATE guoxk_url_alias SET alias='{$url}' WHERE `source` = '$source'";
+	$mysqli->query($sql);
+}
+
+
+
+
+
+
+8、文件转移
+sites/default/files
+wp-content/upload
+html文件夹
+sitemap.xml
+sitemap.html
+google5cf4af34c3ed7353.html
+BingSiteAuth.xml
+9、301重定向
+为“关于我”页面设置别名about
+10、标签和分类的url别名
+安装token和pathauto模块，设置
+Pattern for all category paths ：term/[term:name]
+Pattern for all 标签 paths ：tag/[term:name]
+将文件.htaccess中Protect files and directories from prying eyes.下的Tag去掉
+11、安装ckeditor
+在文件中：ckeditor/ckfinder/config.php   
+windows系统配置$config['FilesystemEncoding'] = 'GBK';
+linux中：$config['FilesystemEncoding'] = 'UTF-8';
+上传文件报错：因为安全原因，文件不可浏览. 请联系系统管理员并检查CKFinder配置文件
+ckeditor/includes/filemanager.config.php中function CheckAuthentication()使用的非当前用户，而是匿名用户，所有没有上传权限，修改该方法直接放回true
+或者在settings.php中设置$base_url = 'http://localhost/guoxk-blog';为当前域名
+设置ckeditor语言为中文
+上传图片，上传flash，上传文件在添加超链接处
+12、好看的主题
+CorporateClean
+13、统计插件CCNZ
+14、修改“站点信息”
+15、设置内容类型的评论设置、关闭允许评论标题，禁用预览评论，匿名评论必须输入联系信息
+匿名用户开启评论的权限
+16、设置文本输入格式
+
+
+
+
+
+

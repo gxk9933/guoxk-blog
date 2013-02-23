@@ -1,0 +1,58 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the wp_side module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function wp_side_install() {
+    // Create the 'taxonomy_forums' field if it doesn't already exist.
+    if (!field_info_field('field_link')) {
+        $field = array(
+            'field_name' => 'field_link',
+            'type' => 'text',
+        );
+        field_create_field($field);
+    
+    
+        // Create the instance on the bundle.
+        $instance = array(
+            'field_name' => 'field_link',
+            'entity_type' => 'node',
+            'label' => t('链接地址'),
+            'bundle' => 'link',//内容类型的机读名称
+            'required' => TRUE,
+            'widget' => array(
+                'type' => 'text_textfield',
+            ),
+            'display' => array(
+                'default' => array(
+                    'type' => 'field_link',
+                    'weight' => 10,
+                ),
+                'teaser' => array(
+                    'type' => 'field_link',
+                    'weight' => 10,
+                ),
+            ),
+        );
+        field_create_instance($instance);
+    }
+    
+    // Ensure the forum node type is available.
+    node_types_rebuild();
+    $types = node_type_get_types();
+    node_add_body_field($types['link']);
+}
+
+
+function wp_side_uninstall() {
+    
+    field_delete_field('field_link');
+    // Purge field data now to allow taxonomy module to be uninstalled
+    // if this is the only field remaining.
+    field_purge_batch(10);
+}

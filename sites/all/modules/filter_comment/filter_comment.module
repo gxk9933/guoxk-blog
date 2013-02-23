@@ -1,0 +1,22 @@
+<?php 
+
+/**
+ * hook_comment
+ */
+function filter_comment_comment_presave($comment){
+    $comment_body = $comment->comment_body['und'][0]['value'];
+    $noChinese = !preg_match("/.*([\x{4e00}-\x{9fa5}]+).*/u",$comment_body);
+    preg_match_all("/http:[\/]{2}.*/", $comment_body, $muchLink);
+    if($noChinese || count($muchLink[0])>2)
+        drupal_exit();
+}
+
+
+
+
+
+
+
+
+
+

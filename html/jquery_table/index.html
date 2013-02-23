@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>jQuery Test</title>
+    <style type="text/css">
+      TABLE {
+        width:800px;
+        background: white; 
+        border-collapse: separate;
+        border-spacing: 2px;
+        border: 5px solid black;
+      }
+      thead th span{
+        cursor:pointer;
+      }
+      .even{
+        background:gray;
+      }
+      .odd{
+        background:#eee;
+      }
+      .hover{
+        color:red;
+      }
+    </style>
+    <script type="text/javascript" src="jquery-1.4.2.min.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function(){
+        var alternateRowColors = function($table){
+          $('tbody tr:odd', $table).removeClass('even').addClass('odd');
+          $('tbody tr:even', $table).removeClass('odd').addClass('even');
+        };
+        $('table.sortable').each(function(){
+          var $table = $(this);
+          alternateRowColors($table);
+          $('th', $table).each(function(column){
+            if($(this).is('.sort-alpha')){
+              $(this).addClass('clickable').hover(function(){
+                $(this).addClass('hover');
+              }, function(){
+                $(this).removeClass('hover');
+              }).click(function(){
+                var rows = $table.find('tbody > tr').get();
+                rows.sort(function(a, b){
+                  var keyA = $(a).children('td').eq(column).text().toUpperCase();
+                  var keyB = $(b).children('td').eq(column).text().toUpperCase();
+                  if(keyA < keyB) return -1;
+                  if(keyA > keyB) return 1;
+                  return 0;
+                });
+                $.each(rows, function(index, row){
+                  $table.children('tbody').append(row);
+                });
+                alternateRowColors($table);
+              });
+            }
+          });
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <table class="sortable">
+      <thead>
+        <th width="100px"></th>
+        <th width="200px" class="sort-alpha"><span>Title</span></th>
+        <th width="250px" class="sort-alpha"><span>Author(s)</span></th>
+        <th width="100px" class="sort-alpha"><span>Publish&nbsp;Date</span></th>
+        <th width="100px" class="sort-alpha"><span>Price</span></th>
+      </thead>
+      <tbody>
+        <tr>
+          <td><img src="1.jpg" width="85px" height="120px" alt="Advaced Microsoft Content Management Server Development"></td>
+          <td>Advaced Microsoft Content Management Server Development</td>
+          <td>Angus Logan, Stefan GoBner, Lim Mei Ying, Andrew Connell</td>
+          <td>Nov 2005</td>
+          <td>$53.99</td>
+        </tr>
+        <tr>
+          <td><img src="2.jpg" width="85px" height="120px" alt="AJAX and PHP:Building Responsive Web Applications"></td>
+          <td>AJAX and PHP:Building Responsive Web Applications</td>
+          <td>Crisitian Darie, Mihai Bucica, Filip Chereches-Tops, Bogdan Brinzarea</td>
+          <td>Mar 2006</td>
+          <td>$31.49</td>
+        </tr>
+        <tr>
+          <td><img src="4.jpg" width="85px" height="120px" alt="BPEL Cookbook:Best Practices for SOA-based integration and composite applications development"></td>
+          <td>BPEL Cookbook:Best Practices for SOA-based integration and composite applications development</td>
+          <td>Jerry Thomas, Doug Todd, Harish Gaur, Lawrence Pravin</td>
+          <td>Jul 2006</td>
+          <td>$40.49</td>
+        </tr>
+        <tr>
+          <td><img src="3.jpg" width="85px" height="120px" alt="Alfresco Enterprise Content Management Implementation"></td>
+          <td>Alfresco Enterprise Content Management Implementation</td>
+          <td>Munwar Shariff</td>
+          <td>Jan 2007</td>
+          <td>$53.99</td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>

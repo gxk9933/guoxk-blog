@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitioal//EN"
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>Through the Looking-Glass</title>
+    <style type="text/css">
+      .letters{
+        float:left;
+        width:200px;
+        border:2px groove black;
+        margin:5px;
+      }
+      .letter h3{
+        margin-left:25px;
+      }
+      .letter .button{
+        text-align:center;
+        border:3px groove black;
+        padding-top:  5px;
+        margin-left:25px;
+        margin-bottom:5px;
+        width:150px;
+        height:20px;
+        cursor:pointer;
+      }
+      #dictionary{
+        float:right;
+        width:600px;
+        margin-right:200px;
+      }
+    </style>
+    <script src="jquery.js" type="text/javascript"></script>
+    <script type="text/javascript" language="javascript">
+      $(document).ready(function(){
+        $('#letter-a .button').click(function(){
+          $('#dictionary').empty();
+          $('#dictionary').load('a.html');
+        });
+        
+        $('#letter-b .button').click(function(){
+          $.getJSON("b.json", function(data){
+            $('#dictionary').empty();
+            $.each(data, function(entryIndex, entry){
+              var html = '<div class="entry">';
+              html += '<h3 class="term">'+entry['term']+'</h3>';
+              html += '<div class="part">'+entry['part']+'</div>';
+              html += '<div class="defiition">'+entry['definition'];
+              if(entry['quote']){
+                html += '<div class="quote">';
+                $.each(entry['quote'], function(lineIndex, line){
+                  html += '<div class="quote-line">'+line+'</div>';
+                });
+                html += '</div>';
+              }
+              html += '</div>';
+              html += '</div>';
+              $('#dictionary').append($(html));
+            });
+          });
+        });
+        
+        $('#letter-c .button').click(function(){
+          $.getScript('c.js');
+        });
+        
+        $('#letter-d .button').click(function(){
+          $.get('d.xml', function(data){
+            $('#dictionary').empty();
+            $(data).find('entry').each(function(){
+              var $entry = $(this);
+              var html = '<div class="entry">';
+              html += '<h3 class="term">'+$entry.attr('term')+'</h3>';
+              html += '<div class="part">'+$entry.attr('part')+'</div>';
+              html += '<div class="definition">'+$entry.find('definition').text();
+              $quote = $entry.find('quote');
+              if($quote.length){
+                html += '<div class="quote">';
+                $quote.find('line').each(function(){
+                  html += '<div class="quote-line">'+$(this).text()+'</div>';
+                });
+                html += '</div>';
+              }
+              html += '</div>';
+              html += '</div>';
+              $('#dictionary').append($(html));
+            });
+          });
+        });
+        $('#letter-e a').click(function(){
+          $.get('e.php', {'term': $(this).text()}, function(data){
+            $('#dictionary').html(data);
+          });
+          return false;
+        });
+
+        //POST请求与GET几乎一样，区别在于POST请求更适合传输大量数据
+//        $('#letter-e a').click(function(){
+//          $.post('e.php', {'term': $(this).text()}, function(data){
+//            $('#dictionary').html(data);
+//          });
+//          return false;
+//        });
+
+        //.load()方法
+//        $('#letter-e a').click(function(){
+//            $('#dictionary').load('e.php', {'term': $(this).text()});
+//
+//          return false;
+//        });
+      });
+    </script>
+  </head>
+  <body>
+    <div id="dictionary">
+    </div>
+    <div class="letters">
+      <div class="letter" id="letter-a">
+        <h3>A</h3>
+        <div class="button">Load</div>
+      </div>
+      <div class="letter" id="letter-b">
+        <h3>B</h3>
+        <div class="button">Load</div>
+      </div>
+      <div class="letter" id="letter-c">
+        <h3>C</h3>
+        <div class="button">Load</div>
+      </div>
+      <div class="letter" id="letter-d">
+        <h3>D</h3>
+        <div class="button">Load</div>
+      </div>
+      <div class="letter" id="letter-e">
+        <h3>E</h3>
+        <ul>
+          <li><a href="e.php?term=Eavesdrop">Eavesdrop</a></li>
+          <li><a href="e.php?term=Edible">Edible</a></li>
+          <li><a href="e.php?term=Education">Education</a></li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
