@@ -1,8 +1,8 @@
-ÓÃÁËÒ»¶ÎÊ±¼äµÄwordpress£¬·¢ÏÖ×Ô¼º¶ÔËûµÄ¿ØÖÆ±È½Ï³ÔÁ¦£¬Ïë×öÒ»Ğ©À©Õ¹¹¦ÄÜ£¬µ«ÓÖ²»Ì«ÊìÏ¤wordpress²å¼şµÄÖÆ×÷£¬ËûÈË×öµÄÓÖ²»ºÏÎÒÒâ£¬¹Ê»¹ÊÇ¾ö¶¨½«²©¿Í×ªÒÆ»ØdrupalÉÏÈ¥¡£
-drupalÖĞÓĞÄ£¿é¡°WordPress Migrate¡±ºÍ¡°Wordpress Import¡±¿ÉÒÔÊµÏÖÕâ¸ö¹¦ÄÜ¡£·Ö±ğÊÊÓÃÓÚdrupal7ºÍdrupal6£¬µ«ÊÇÎÒÊ¹ÓÃWordPress MigrateÄ£¿éµ¼ÈëÊı¾İid»áÖØĞÂÅÅÁĞ
-ËùÒÔ»¹ÊÇ¾ö¶¨×Ô¼ºĞ´sqlÓï¾ä×ªÒÆÊı¾İ
-È«ĞÂ°²×°drupal7ºó£¬°²×°µÄÊ±ºòÉèÖÃphpµÄ×î´óÖ´ĞĞÊ±¼äÎª300
-½«wordpressµÄÊı¾İ±íµ¼ÈëÏàÍ¬µÄ¿âÖĞ
+ç”¨äº†ä¸€æ®µæ—¶é—´çš„wordpressï¼Œå‘ç°è‡ªå·±å¯¹ä»–çš„æ§åˆ¶æ¯”è¾ƒåƒåŠ›ï¼Œæƒ³åšä¸€äº›æ‰©å±•åŠŸèƒ½ï¼Œä½†åˆä¸å¤ªç†Ÿæ‚‰wordpressæ’ä»¶çš„åˆ¶ä½œï¼Œä»–äººåšçš„åˆä¸åˆæˆ‘æ„ï¼Œæ•…è¿˜æ˜¯å†³å®šå°†åšå®¢è½¬ç§»å›drupalä¸Šå»ã€‚
+drupalä¸­æœ‰æ¨¡å—â€œWordPress Migrateâ€å’Œâ€œWordpress Importâ€å¯ä»¥å®ç°è¿™ä¸ªåŠŸèƒ½ã€‚åˆ†åˆ«é€‚ç”¨äºdrupal7å’Œdrupal6ï¼Œä½†æ˜¯æˆ‘ä½¿ç”¨WordPress Migrateæ¨¡å—å¯¼å…¥æ•°æ®idä¼šé‡æ–°æ’åˆ—
+æ‰€ä»¥è¿˜æ˜¯å†³å®šè‡ªå·±å†™sqlè¯­å¥è½¬ç§»æ•°æ®
+å…¨æ–°å®‰è£…drupal7åï¼Œå®‰è£…çš„æ—¶å€™è®¾ç½®phpçš„æœ€å¤§æ‰§è¡Œæ—¶é—´ä¸º300
+å°†wordpressçš„æ•°æ®è¡¨å¯¼å…¥ç›¸åŒçš„åº“ä¸­
 truncate table guoxk_node;
 truncate table guoxk_node_revision;
 truncate table guoxk_field_data_body;
@@ -19,7 +19,7 @@ truncate table `guoxk_field_data_field_tags`;
 truncate table `guoxk_field_revision_field_tags`;
 truncate table guoxk_taxonomy_index;
 truncate table guoxk_url_alias ;
-1¡¢×ªÒÆ²©¿ÍÄÚÈİ
+1ã€è½¬ç§»åšå®¢å†…å®¹
 INSERT INTO guoxk_node (nid, vid, `type`, `language`,`title`,`uid`, `status`, `created`, `changed`,`comment`, `promote`, `sticky`, `tnid`, `translate`)
 	SELECT ID, ID, 'article', 'zh-hans',`post_title`, `post_author`, '1', unix_timestamp(`post_date`),  unix_timestamp(`post_modified`), 
 	'2', '1', '0', '0', '0' FROM wp_posts WHERE post_type ='post' AND `post_status` <> 'auto-draft';
@@ -32,7 +32,7 @@ INSERT INTO guoxk_field_revision_body (entity_type, `bundle`, `deleted`, `entity
 INSERT INTO guoxk_node_comment_statistics (nid, cid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count)
 	SELECT ID, 0, 0, NULL, 0, comment_count FROM wp_posts WHERE post_type ='post' AND `post_status` <> 'auto-draft';
 
-2¡¢×ªÒÆÒ³ÃæÄÚÈİ
+2ã€è½¬ç§»é¡µé¢å†…å®¹
 INSERT INTO guoxk_node (nid, vid, `type`, `language`,`title`,`uid`, `status`, `created`, `changed`,`comment`, `promote`, `sticky`, `tnid`, `translate`)
 	SELECT ID, ID, 'page', 'zh-hans',`post_title`, `post_author`, '1', unix_timestamp(`post_date`),  unix_timestamp(`post_modified`), 
 	'2', '1', '0', '0', '0' FROM wp_posts WHERE post_type ='page' AND `post_status` <> 'auto-draft';
@@ -46,7 +46,7 @@ INSERT INTO guoxk_node_comment_statistics (nid, cid, last_comment_timestamp, las
 	SELECT ID, 0, 0, NULL, 0, comment_count FROM wp_posts WHERE post_type ='page' AND `post_status` <> 'auto-draft';
 
 
-3¡¢×ªÒÆÆÀÂÛ
+3ã€è½¬ç§»è¯„è®º
 
 INSERT INTO guoxk_comment (cid, pid, nid, uid, subject, hostname, created, changed, status, thread, name, mail, homepage, language)
 	SELECT comment_ID, comment_parent, comment_post_ID, user_id, 'title', comment_author_IP, 
@@ -57,10 +57,10 @@ INSERT INTO guoxk_field_data_comment_body (entity_type, bundle, deleted, entity_
 	SELECT 'comment', 'comment_node_article', '0', comment_ID, comment_ID, 'und', 0, `comment_content`, 'filtered_html' 
 	FROM wp_comments WHERE comment_ID NOT IN (SELECT comment_id FROM wp_commentmeta) AND comment_type <> 'pingback';
 update guoxk_comment set uid = 0 where uid <> 1
-4¡¢½¨Á¢·ÖÀà
-´ÓÒ³ÃæÉÏ½¨Á¢ÎÄÕÂ·ÖÀà
-²¢×÷ÎªÎÄÕÂµÄÒ»¸öcck×Ö¶Î
-5¡¢µ¼Èë·ÖÀà
+4ã€å»ºç«‹åˆ†ç±»
+ä»é¡µé¢ä¸Šå»ºç«‹æ–‡ç« åˆ†ç±»
+å¹¶ä½œä¸ºæ–‡ç« çš„ä¸€ä¸ªcckå­—æ®µ
+5ã€å¯¼å…¥åˆ†ç±»
 
 INSERT INTO `guoxk_taxonomy_term_data` (`tid`, `vid`, `name`, `description`, `format`, `weight`) 
 	SELECT wtt.term_taxonomy_id, 2, wt.name, '', 'filtered_html', 0 FROM wp_terms wt INNER JOIN wp_term_taxonomy wtt ON wt.term_id = wtt.term_id
@@ -71,7 +71,7 @@ INSERT INTO `guoxk_taxonomy_term_data` (`tid`, `vid`, `name`, `description`, `fo
 	WHERE wtt.taxonomy = 'post_tag';
 INSERT INTO `guoxk_taxonomy_term_hierarchy` (`tid`, `parent`)
 	SELECT `term_taxonomy_id`, `parent` FROM wp_term_taxonomy;
-6¡¢ÎÄÕÂÓë·ÖÀà½¨Á¢¹ØÏµ
+6ã€æ–‡ç« ä¸åˆ†ç±»å»ºç«‹å…³ç³»
 
 
 INSERT INTO `guoxk_field_data_field_category` (`entity_type`, `bundle`, `deleted`, `entity_id`, `revision_id`, `language`, `delta`, `field_category_tid`)
@@ -91,7 +91,7 @@ INSERT INTO `guoxk_field_revision_field_tags` (`entity_type`, `bundle`, `deleted
 INSERT INTO guoxk_taxonomy_index (nid, tid, sticky, created)
 	SELECT object_id, term_taxonomy_id, 0, unix_timestamp() from wp_term_relationships;
 
-7¡¢url±ğÃûµÄµ¼Èë
+7ã€urlåˆ«åçš„å¯¼å…¥
 
 INSERT INTO guoxk_url_alias (`source`, `alias`, `language`)
 	SELECT concat('node/',ID), concat('node/', post_name), 'zh-hans' FROM wp_posts WHERE post_type ='post' AND `post_status` <> 'auto-draft';
@@ -114,37 +114,37 @@ while($row = $result->fetch_array()){
 
 
 
-8¡¢ÎÄ¼ş×ªÒÆ
+8ã€æ–‡ä»¶è½¬ç§»
 sites/default/files
 wp-content/upload
-htmlÎÄ¼ş¼Ğ
+htmlæ–‡ä»¶å¤¹
 sitemap.xml
 sitemap.html
 google5cf4af34c3ed7353.html
 BingSiteAuth.xml
-9¡¢301ÖØ¶¨Ïò
-Îª¡°¹ØÓÚÎÒ¡±Ò³ÃæÉèÖÃ±ğÃûabout
-10¡¢±êÇ©ºÍ·ÖÀàµÄurl±ğÃû
-°²×°tokenºÍpathautoÄ£¿é£¬ÉèÖÃ
-Pattern for all category paths £ºterm/[term:name]
-Pattern for all ±êÇ© paths £ºtag/[term:name]
-½«ÎÄ¼ş.htaccessÖĞProtect files and directories from prying eyes.ÏÂµÄTagÈ¥µô
-11¡¢°²×°ckeditor
-ÔÚÎÄ¼şÖĞ£ºckeditor/ckfinder/config.php   
-windowsÏµÍ³ÅäÖÃ$config['FilesystemEncoding'] = 'GBK';
-linuxÖĞ£º$config['FilesystemEncoding'] = 'UTF-8';
-ÉÏ´«ÎÄ¼ş±¨´í£ºÒòÎª°²È«Ô­Òò£¬ÎÄ¼ş²»¿Éä¯ÀÀ. ÇëÁªÏµÏµÍ³¹ÜÀíÔ±²¢¼ì²éCKFinderÅäÖÃÎÄ¼ş
-ckeditor/includes/filemanager.config.phpÖĞfunction CheckAuthentication()Ê¹ÓÃµÄ·Çµ±Ç°ÓÃ»§£¬¶øÊÇÄäÃûÓÃ»§£¬ËùÓĞÃ»ÓĞÉÏ´«È¨ÏŞ£¬ĞŞ¸Ä¸Ã·½·¨Ö±½Ó·Å»Øtrue
-»òÕßÔÚsettings.phpÖĞÉèÖÃ$base_url = 'http://localhost/guoxk-blog';Îªµ±Ç°ÓòÃû
-ÉèÖÃckeditorÓïÑÔÎªÖĞÎÄ
-ÉÏ´«Í¼Æ¬£¬ÉÏ´«flash£¬ÉÏ´«ÎÄ¼şÔÚÌí¼Ó³¬Á´½Ó´¦
-12¡¢ºÃ¿´µÄÖ÷Ìâ
+9ã€301é‡å®šå‘
+ä¸ºâ€œå…³äºæˆ‘â€é¡µé¢è®¾ç½®åˆ«åabout
+10ã€æ ‡ç­¾å’Œåˆ†ç±»çš„urlåˆ«å
+å®‰è£…tokenå’Œpathautoæ¨¡å—ï¼Œè®¾ç½®
+Pattern for all category paths ï¼šterm/[term:name]
+Pattern for all æ ‡ç­¾ paths ï¼štag/[term:name]
+å°†æ–‡ä»¶.htaccessä¸­Protect files and directories from prying eyes.ä¸‹çš„Tagå»æ‰
+11ã€å®‰è£…ckeditor
+åœ¨æ–‡ä»¶ä¸­ï¼šckeditor/ckfinder/config.php   
+windowsç³»ç»Ÿé…ç½®$config['FilesystemEncoding'] = 'GBK';
+linuxä¸­ï¼š$config['FilesystemEncoding'] = 'UTF-8';
+ä¸Šä¼ æ–‡ä»¶æŠ¥é”™ï¼šå› ä¸ºå®‰å…¨åŸå› ï¼Œæ–‡ä»¶ä¸å¯æµè§ˆ. è¯·è”ç³»ç³»ç»Ÿç®¡ç†å‘˜å¹¶æ£€æŸ¥CKFinderé…ç½®æ–‡ä»¶
+ckeditor/includes/filemanager.config.phpä¸­function CheckAuthentication()ä½¿ç”¨çš„éå½“å‰ç”¨æˆ·ï¼Œè€Œæ˜¯åŒ¿åç”¨æˆ·ï¼Œæ‰€æœ‰æ²¡æœ‰ä¸Šä¼ æƒé™ï¼Œä¿®æ”¹è¯¥æ–¹æ³•ç›´æ¥æ”¾å›true
+æˆ–è€…åœ¨settings.phpä¸­è®¾ç½®$base_url = 'http://localhost/guoxk-blog';ä¸ºå½“å‰åŸŸå
+è®¾ç½®ckeditorè¯­è¨€ä¸ºä¸­æ–‡
+ä¸Šä¼ å›¾ç‰‡ï¼Œä¸Šä¼ flashï¼Œä¸Šä¼ æ–‡ä»¶åœ¨æ·»åŠ è¶…é“¾æ¥å¤„
+12ã€å¥½çœ‹çš„ä¸»é¢˜
 CorporateClean
-13¡¢Í³¼Æ²å¼şCCNZ
-14¡¢ĞŞ¸Ä¡°Õ¾µãĞÅÏ¢¡±
-15¡¢ÉèÖÃÄÚÈİÀàĞÍµÄÆÀÂÛÉèÖÃ¡¢¹Ø±ÕÔÊĞíÆÀÂÛ±êÌâ£¬½ûÓÃÔ¤ÀÀÆÀÂÛ£¬ÄäÃûÆÀÂÛ±ØĞëÊäÈëÁªÏµĞÅÏ¢
-ÄäÃûÓÃ»§¿ªÆôÆÀÂÛµÄÈ¨ÏŞ
-16¡¢ÉèÖÃÎÄ±¾ÊäÈë¸ñÊ½
+13ã€ç»Ÿè®¡æ’ä»¶CCNZ
+14ã€ä¿®æ”¹â€œç«™ç‚¹ä¿¡æ¯â€
+15ã€è®¾ç½®å†…å®¹ç±»å‹çš„è¯„è®ºè®¾ç½®ã€å…³é—­å…è®¸è¯„è®ºæ ‡é¢˜ï¼Œç¦ç”¨é¢„è§ˆè¯„è®ºï¼ŒåŒ¿åè¯„è®ºå¿…é¡»è¾“å…¥è”ç³»ä¿¡æ¯
+åŒ¿åç”¨æˆ·å¼€å¯è¯„è®ºçš„æƒé™
+16ã€è®¾ç½®æ–‡æœ¬è¾“å…¥æ ¼å¼
 
 
 

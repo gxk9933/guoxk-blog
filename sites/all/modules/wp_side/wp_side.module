@@ -10,12 +10,14 @@ function wp_side_init() {
  * Implements hook_menu().
  */
 function wp_side_menu() {
+    /**
     $items['admin/install_node_type_link'] = array(
             'title' => '安装link',
             'page callback' => 'install_node_type_link',
             'access arguments' => array('access content'),
     );
     return $items;
+    */
 }
 
 /**
